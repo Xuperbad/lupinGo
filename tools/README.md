@@ -38,11 +38,11 @@ python tools/level_generator.py -d hell      # 地狱
 ### 示例
 
 ```bash
-# 生成5个困难关卡，显示统计和验证结果
-python tools/level_generator.py -d hard -n 5 --stats -v
+# 生成5个困难关卡，显示统计和验证结果，并保存到文件
+python tools/level_generator.py -d hell -n 5 --stats -v -o levels_hell.txt
 
 # 生成关卡并保存到文件
-python tools/level_generator.py -d hard > level.txt
+python tools/level_generator.py -d hell > level.txt
 ```
 
 ### 难度配置
@@ -159,6 +159,12 @@ python tools/level_visualizer.py -f level.txt -s
 
 # 或使用GUI模式
 python tools/level_visualizer.py -f level.txt --gui
+
+# 或直接玩默认的 level.txt
+python tools/level_player.py
+
+# 取第一行测试
+python tools/level_player.py levels_normal.txt
 ```
 
 > ⚠️ 注意：使用 `-f level.txt` 前，必须先生成 level.txt 文件

@@ -42,10 +42,10 @@ class DifficultyConfig:
 
 # 预设难度
 DIFFICULTIES = {
-    "easy": DifficultyConfig("简单", layers=5, type_count=5, cards_per_type=5),
-    "normal": DifficultyConfig("普通", layers=6, type_count=6, cards_per_type=6),
-    "hard": DifficultyConfig("困难", layers=7, type_count=7, cards_per_type=7),
-    "hell": DifficultyConfig("地狱", layers=8, type_count=8, cards_per_type=8),
+    "easy": DifficultyConfig("简单", layers=5, type_count=5, cards_per_type=3),
+    "normal": DifficultyConfig("普通", layers=6, type_count=6, cards_per_type=4),
+    "hard": DifficultyConfig("困难", layers=8, type_count=7, cards_per_type=4),
+    "hell": DifficultyConfig("地狱", layers=10, type_count=8, cards_per_type=5),
 }
 
 
@@ -268,10 +268,13 @@ if __name__ == "__main__":
                         help="验证可解性")
     parser.add_argument("--stats", action="store_true",
                         help="显示统计信息")
+    parser.add_argument("-o", "--output", type=str,
+                        help="输出到文件")
 
     args = parser.parse_args()
 
     config = DIFFICULTIES[args.difficulty]
+    output_lines = []
 
     for i in range(args.count):
         generator = LevelGenerator(config)
@@ -290,4 +293,13 @@ if __name__ == "__main__":
 
         print(level)
         print()
+
+        output_lines.append(level)
+
+    # 保存到文件
+    if args.output:
+        with open(args.output, 'w', encoding='utf-8') as f:
+            for line in output_lines:
+                f.write(line + '\n')
+        print(f"已保存到 {args.output}")
 
