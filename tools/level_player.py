@@ -64,16 +64,21 @@ class Game:
         self.max_slot = 7
         self.game_over = False
         self.win = False
-        
+
+        # 根据卡片坐标自动计算棋盘尺寸
+        max_x = max(c.x for c in cards) + 2  # +2 因为卡片占2格
+        max_y = max(c.y for c in cards) + 2
+
         # 界面设置
         self.cell_size = 35
-        self.grid_size = 12
+        self.grid_width = max_x
+        self.grid_height = max_y
         self.margin = 50
         self.slot_height = 80
         self.info_width = 150
-        
-        self.width = self.grid_size * self.cell_size + self.margin * 2 + self.info_width
-        self.height = self.grid_size * self.cell_size + self.margin * 2 + self.slot_height
+
+        self.width = self.grid_width * self.cell_size + self.margin * 2 + self.info_width
+        self.height = self.grid_height * self.cell_size + self.margin * 2 + self.slot_height
         
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -174,7 +179,7 @@ class Game:
             self.screen.blit(text, text_rect)
 
         # 绘制槽位区域
-        slot_y = self.margin + self.grid_size * self.cell_size + 10
+        slot_y = self.margin + self.grid_height * self.cell_size + 10
         slot_width = 50
         pygame.draw.rect(self.screen, (70, 70, 70),
                         (self.margin, slot_y, slot_width * self.max_slot + 10, 60),
@@ -197,7 +202,7 @@ class Game:
             pygame.draw.rect(self.screen, (100, 100, 100), rect, 2, border_radius=5)
 
         # 绘制信息面板
-        info_x = self.margin + self.grid_size * self.cell_size + 20
+        info_x = self.margin + self.grid_width * self.cell_size + 20
         remaining = len([c for c in self.cards if not c.removed])
 
         info_texts = [

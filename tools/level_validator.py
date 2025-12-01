@@ -23,17 +23,21 @@ def parse_level(level_str):
     return cards
 
 
-def validate_level(cards):
+def validate_level(cards, board_width=6, board_height=6):
     """验证关卡配置"""
     errors = []
     warnings = []
-    
-    # 1. 检查坐标越界（卡片占2x2，所以最大坐标是10）
+
+    # 根据棋盘尺寸计算最大坐标
+    max_x = board_width * 2 - 2   # 每张卡片占2格
+    max_y = board_height * 2 - 2
+
+    # 1. 检查坐标越界
     for i, card in enumerate(cards):
-        if card['x'] < 0 or card['x'] > 10:
-            errors.append(f"卡片 {i+1} [{card['z']},{card['y']},{card['x']},{card['type']}]: X坐标越界 (应为0-10)")
-        if card['y'] < 0 or card['y'] > 10:
-            errors.append(f"卡片 {i+1} [{card['z']},{card['y']},{card['x']},{card['type']}]: Y坐标越界 (应为0-10)")
+        if card['x'] < 0 or card['x'] > max_x:
+            errors.append(f"卡片 {i+1} [{card['z']},{card['y']},{card['x']},{card['type']}]: X坐标越界 (应为0-{max_x})")
+        if card['y'] < 0 or card['y'] > max_y:
+            errors.append(f"卡片 {i+1} [{card['z']},{card['y']},{card['x']},{card['type']}]: Y坐标越界 (应为0-{max_y})")
     
     # 2. 检查同层重叠
     layers = defaultdict(list)
@@ -71,33 +75,51 @@ def validate_level(cards):
 
 
 def main():
-    # 读取文件
-    if len(sys.argv) > 1:
-        filename = sys.argv[1]
-    else:
-        filename = "level.txt"
-    
+    import argparse
+
+    parser = argparse.ArgumentParser(description="关卡配置验证工具")
+    parser.add_argument("file", nargs='?', default="level.txt", help="关卡文件")
+    parser.add_argument("-w", "--width", type=int, default=0, help="棋盘宽度（卡片数），0表示自动检测")
+    parser.add_argument("-H", "--height", type=int, default=0, help="棋盘高度（卡片数），0表示自动检测")
+
+    args = parser.parse_args()
+
     # 尝试多种编码
     level_str = None
     for encoding in ['utf-8', 'utf-8-sig', 'utf-16', 'gbk', 'latin-1']:
         try:
-            with open(filename, 'r', encoding=encoding) as f:
+            with open(args.file, 'r', encoding=encoding) as f:
                 level_str = f.read().strip()
             break
         except (UnicodeDecodeError, UnicodeError):
             continue
-    
+
     if not level_str:
-        print(f"错误: 无法读取文件 {filename}")
+        print(f"错误: 无法读取文件 {args.file}")
         sys.exit(1)
-    
+
     cards = parse_level(level_str)
+
+    # 自动检测棋盘尺寸
+    if args.width == 0:
+        max_x = max(c['x'] for c in cards)
+        board_width = (max_x + 2) // 2 + 1  # 反推棋盘宽度
+    else:
+        board_width = args.width
+
+    if args.height == 0:
+        max_y = max(c['y'] for c in cards)
+        board_height = (max_y + 2) // 2 + 1  # 反推棋盘高度
+    else:
+        board_height = args.height
+
     print(f"解析到 {len(cards)} 张卡片")
     print(f"层数: {max(c['z'] for c in cards) + 1}")
     print(f"类型数: {len(set(c['type'] for c in cards))}")
+    print(f"棋盘尺寸: {board_width}x{board_height} (卡片)")
     print()
-    
-    errors, warnings = validate_level(cards)
+
+    errors, warnings = validate_level(cards, board_width, board_height)
     
     # 输出警告（类型统计）
     print("=== 类型统计 ===")

@@ -31,32 +31,37 @@ class Card:
         ]
 
 
-@dataclass  
+@dataclass
 class DifficultyConfig:
     """难度配置"""
     name: str
     layers: int              # 层数
     type_count: int          # 类型数量
     cards_per_type: int      # 每种类型的卡片组数（每组3张）
-    
+    board_width: int = 6     # 棋盘宽度（卡片数量）
+    board_height: int = 6    # 棋盘高度（卡片数量）
+
 
 # 预设难度
 DIFFICULTIES = {
-    "easy": DifficultyConfig("简单", layers=5, type_count=5, cards_per_type=3),
-    "normal": DifficultyConfig("普通", layers=6, type_count=6, cards_per_type=4),
-    "hard": DifficultyConfig("困难", layers=8, type_count=7, cards_per_type=4),
-    "hell": DifficultyConfig("地狱", layers=10, type_count=8, cards_per_type=5),
+    "easy": DifficultyConfig("简单", layers=5, type_count=5, cards_per_type=3, board_width=5, board_height=5),
+    "normal": DifficultyConfig("普通", layers=6, type_count=6, cards_per_type=4, board_width=5, board_height=5),
+    "hard": DifficultyConfig("困难", layers=8, type_count=7, cards_per_type=4, board_width=5, board_height=6),
+    "hell": DifficultyConfig("地狱", layers=10, type_count=8, cards_per_type=5, board_width=6, board_height=6),
 }
 
 
 class LevelGenerator:
     """关卡生成器"""
-    
-    GRID_SIZE = 12      # 网格大小
-    MAX_CARD_POS = 10   # 卡片最大坐标（因为占2x2）
+
     SLOT_SIZE = 7       # 槽位数量
-    
+
     def __init__(self, config: DifficultyConfig):
+        # 根据配置计算网格尺寸
+        self.grid_width = config.board_width * 2    # 每张卡片占2格
+        self.grid_height = config.board_height * 2
+        self.max_x = self.grid_width - 2   # 卡片最大X坐标（因为占2x2）
+        self.max_y = self.grid_height - 2  # 卡片最大Y坐标
         self.config = config
         self.cards: List[Card] = []
         
@@ -107,16 +112,16 @@ class LevelGenerator:
                 )
             
             # 随机位置
-            x = random.randint(0, self.MAX_CARD_POS)
-            y = random.randint(0, self.MAX_CARD_POS)
+            x = random.randint(0, self.max_x)
+            y = random.randint(0, self.max_y)
             z = preferred_z
-            
+
             # 检查位置是否有效
             if self._is_valid_position(x, y, z):
                 card = Card(z=z, y=y, x=x, type=card_type)
                 self.cards.append(card)
                 placed += 1
-        
+
         if placed < 3:
             # 如果放不下，尝试在更高层找有效位置
             extra_z = self.config.layers
@@ -125,8 +130,8 @@ class LevelGenerator:
 
             while placed < 3 and fallback_attempts < max_fallback:
                 fallback_attempts += 1
-                x = random.randint(0, self.MAX_CARD_POS)
-                y = random.randint(0, self.MAX_CARD_POS)
+                x = random.randint(0, self.max_x)
+                y = random.randint(0, self.max_y)
 
                 # 尝试当前 extra_z 层
                 if self._is_valid_position(x, y, extra_z):
@@ -136,11 +141,11 @@ class LevelGenerator:
                 elif fallback_attempts % 50 == 0:
                     # 每50次尝试失败后，尝试更高层
                     extra_z += 1
-    
+
     def _is_valid_position(self, x: int, y: int, z: int) -> bool:
         """检查位置是否有效"""
         # 边界检查
-        if x < 0 or x > self.MAX_CARD_POS or y < 0 or y > self.MAX_CARD_POS:
+        if x < 0 or x > self.max_x or y < 0 or y > self.max_y:
             return False
         
         # 检查同层冲突（2x2区域不能重叠）
@@ -170,6 +175,7 @@ class LevelGenerator:
             "total_cards": len(self.cards),
             "layers": max(c.z for c in self.cards) + 1 if self.cards else 0,
             "types": len(set(c.type for c in self.cards)),
+            "board": f"{self.config.board_width}x{self.config.board_height}",
             "difficulty": self.config.name,
         }
 
