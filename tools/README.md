@@ -26,6 +26,20 @@ python tools/level_generator.py -d hard      # 困难
 python tools/level_generator.py -d hell      # 地狱
 ```
 
+如果你想直接点界面使用，可以运行：
+
+```bash
+python tools/level_generator_gui.py
+```
+
+界面里可以直接选择：
+- 难度
+- 生成数量
+- 是否验证可解
+- 是否显示统计
+
+结果会直接显示在窗口里，可点“复制结果”。
+
 ### 参数说明
 
 | 参数 | 说明 | 示例 |
@@ -43,6 +57,19 @@ python tools/level_generator.py -d hell -n 5 --stats -v -o levels_hell.txt
 
 # 生成关卡并保存到文件
 python tools/level_generator.py -d hell > level.txt
+```
+
+Windows 打包成 exe：
+
+```bash
+pip install pyinstaller
+build_level_generator_gui.bat
+```
+
+打包成功后可执行文件在：
+
+```bash
+dist\level-generator-gui.exe
 ```
 
 ### 难度配置
@@ -179,4 +206,3 @@ python tools/level_player.py levels_normal.txt
 4. **消除规则**: 3张同类型卡片消除
 5. **槽位限制**: 7个槽位
 6. **可解性**: 生成器采用逆向生成法，保证100%可解
-
